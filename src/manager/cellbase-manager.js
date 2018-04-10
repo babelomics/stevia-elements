@@ -49,7 +49,7 @@ var CellBaseManager = {
         var request = new XMLHttpRequest();
         request.onload = function () {
             var contentType = this.getResponseHeader('Content-Type');
-            if (contentType === 'application/json') {
+            if (contentType.indexOf('application/json')!= -1) {
                 var parsedResponse = JSON.parse(this.response);
                 if (typeof success === "function") success(parsedResponse);
                 d = parsedResponse;
