@@ -3,25 +3,26 @@
 
 <dom-module id="stv-image-preview">
     <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning">
-    :host {
+     :host {
             display: block;
             position: relative;
             box-sizing: border-box;
             overflow-y: auto;
             overflow-x: auto;
-            min-width: 800px;
-            min-height: 600px;
+            /*min-width: 800px;*/
+            /*min-height: 600px;*/
+            height: calc(100vh - 100px);
             padding: 10px;
         }
 
         img {
-            position: absolute;
+            position: relative;
             margin: 0;
-            top: 50%;
-            left: 50%;
-            margin-right: -50%;
-            transform: translate(-50%, -50%);
-            justify-content: center
+            /*top: 50%;*/
+            /*left: 50%;*/
+            /*margin-right: -50%;*/
+            /*transform: translate(-50%, -50%);*/
+            justify-content: center;
         }
 
         .botbar {
@@ -35,10 +36,12 @@
     }
     </style>
     <template>
-        <img src="{{imageURL}}" alt="">
         <div class="horizontal layout center-justified botbar">
             <div class="download stv-btn stv-btn-shdw" on-click="handleDownloadFile">Download <i class="fa fa-download"></i></div>
         </div>
+
+        <img src="{{imageURL}}" alt="" width="800">
+        <br>
     </template>
 </dom-module>
 <script>

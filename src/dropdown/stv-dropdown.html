@@ -2,7 +2,7 @@
 <link rel="import" href="../../../iron-flex-layout/iron-flex-layout-classes.html">
 <dom-module id="stv-dropdown">
     <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning">
-        :host {
+         :host {
             position: relative;
             display: block;
             box-sizing: border-box;
@@ -12,22 +12,22 @@
             color: var(--primary-text-color);
         }
 
-        :host::content ul a:hover {
+         :host::content ul>li a:hover {
             text-decoration: none;
         }
 
-        :host::content > [data-button] {
+         :host::content>[data-button] {
             /*padding: 5px;*/
             height: 100%;
             cursor: pointer;
             outline: transparent solid 0px;
         }
 
-        :host::content > [data-button]:hover {
+         :host::content>[data-button]:hover {
             background-color: var(--hover-color);
         }
 
-        :host::content ul {
+         :host::content ul {
             box-sizing: border-box;
             display: none;
             position: absolute;
@@ -41,37 +41,41 @@
             padding: 0;
             box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
             text-align: left;
-            cursor: pointer;
             text-transform: none;
             margin: 1px 0 0 0;
             /*transition: all 0.25s;*/
         }
 
-        :host::content ul {
+         :host[no-min-width] ::content ul {
+            min-width: initial;
+        }
+
+         :host::content ul {
             left: 0;
             top: 100%;
         }
 
-        :host::content ul[data-upward] {
+         :host::content ul[data-upward] {
             top: inherit;
             bottom: 100%;
             margin-bottom: 2px;
             left: 0;
         }
 
-        :host::content ul ul {
+         :host::content ul ul {
             top: 0px;
             left: 100%;
         }
 
-        :host::content ul li {
+         :host::content ul li {
             position: relative;
             text-align: left;
             padding: 3px 30px 4px 10px;
             white-space: nowrap;
+            cursor: pointer;
         }
 
-        :host::content ul li[data-divider] {
+         :host::content ul li[data-divider] {
             height: 1px;
             margin: 3px 0;
             padding: 0;
@@ -79,7 +83,7 @@
             background-color: var(--divider-color);
         }
 
-        :host::content ul li[data-sub]:after {
+         :host::content ul li[data-sub]:after {
             font-family: 'FontAwesome';
             content: '\f105';
             /* > */
@@ -89,42 +93,42 @@
             top: 4px;
         }
 
-        :host::content ul li.active,
-        :host::content ul li:active {
+         :host::content ul li.active,
+         :host::content ul li:active {
             background-color: #DEDEDE;
         }
 
-        :host::content ul li:hover {
+         :host::content ul li:hover {
             background-color: var(--dark-button-color);
             color: var(--text-primary-color);
         }
 
-        :host::content ul li[data-text]:hover {
+         :host::content ul li[data-text]:hover {
             background-color: inherit !important;
             color: inherit !important;
         }
 
-        :host::content ul li[data-divider]:hover {
+         :host::content ul li[data-divider]:hover {
             background-color: var(--divider-color) !important;
         }
 
-        :host::content > ul li:hover > ul {
+         :host::content>ul li:hover>ul {
             display: block;
         }
         /**/
         /* dark */
         /**/
 
-        :host[dark] {
+         :host[dark] {
             /*margin: 0 10px;*/
             color: var(--text-primary-color);
         }
 
-        :host[dark]::content > [data-button]:hover {
+         :host[dark]::content>[data-button]:hover {
             background-color: transparent;
         }
 
-        :host[dark]::content > [data-button]:hover > * {
+         :host[dark]::content>[data-button]:hover>* {
             color: var(--accent-color);
         }
         /*:host::content > [data-menu] {
@@ -132,17 +136,17 @@
             padding:5px;
         }*/
 
-        :host[dark]::content ul {
+         :host[dark]::content ul {
             background-color: var(--dark-primary-color);
             color: var(--text-primary-color);
             border-color: var(--default-primary-color);
         }
 
-        :host[dark]::content ul li[data-divider] {
+         :host[dark]::content ul li[data-divider] {
             background-color: var(--default-primary-color);
         }
 
-        :host[dark]::content ul li[data-divider]:hover {
+         :host[dark]::content ul li[data-divider]:hover {
             background-color: var(--default-primary-color) !important;
         }
     </style>
@@ -160,6 +164,11 @@
                 },
                 menu: {
                     type: Object
+                },
+                noMinWidth: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
                 }
             },
             listeners: {
@@ -167,8 +176,8 @@
             },
             ready: function() {
                 var me = this;
-                this.button = this.children[0];
-                this.menu = this.children[1];
+                this.button = this.querySelector('[data-button]');
+                this.menu = this.querySelector('[data-menu]');
 
                 document.body.addEventListener('click', function(e) {
                     if (!me.contains(e.target)) {
@@ -181,10 +190,13 @@
                 if (this.button != null) {
                     this.handleShowMenu(e);
                 };
-                if (this.menu.contains(e.target)) {
-                    this.async(function() {
-                        this.hideMenu();
-                    }, 100);
+                var noHideElFlag = this.menu.contains(e.target.closest("[data-nohide]"));
+                if (noHideElFlag == false) {
+                    if (this.menu.contains(e.target)) {
+                        this.async(function() {
+                            this.hideMenu();
+                        }, 100);
+                    }
                 }
             },
             handleShowMenu: function(e) {
@@ -205,32 +217,44 @@
                 }
             },
             hideMenu: function() {
-                this.menu.style.display = "none";
+                if (this.menu != null) {
+                    this.menu.style.display = "none";
+                } else {
+                    console.warn("No menu defined in dropdown element");
+                }
             },
-            showMenu: function() {
+            showMenu: function(x, y) {
                 this.menu.style.display = "block";
                 this._getPosition();
+                if (x != null && x != null) {
+                    this.menu.style.position = 'fixed';
+                    this.menu.style.top = y + 'px';
+                    this.menu.style.left = x + 'px';
+                } else {
+                    this.menu.style.position = '';
+                }
             },
             _getPosition: function() {
-                var bcrButton = this.button.getBoundingClientRect();
-                var bcrMenu = this.menu.getBoundingClientRect();
-                var windowHeight = window.innerHeight;
-                var windowWidth = window.innerWidth;
+                if (this.button != null && this.menu != null) {
+                    var bcrButton = this.button.getBoundingClientRect();
+                    var bcrMenu = this.menu.getBoundingClientRect();
+                    var windowHeight = window.innerHeight;
+                    var windowWidth = window.innerWidth;
 
-                // this.menu.style.top = (bcrButton.bottom) + 'px';
-                // this.menu.style.left = (bcrButton.left) + 'px';
+                    // this.menu.style.top = (bcrButton.bottom) + 'px';
+                    // this.menu.style.left = (bcrButton.left) + 'px';
 
-                var t;
-                var l;
-                if ((bcrButton.bottom + bcrMenu.height) > window.innerHeight) {
-                    t = (bcrMenu.height - bcrButton.height) + 'px';
+                    var t;
+                    var l;
+                    if ((bcrButton.bottom + bcrMenu.height) > window.innerHeight) {
+                        t = (bcrMenu.height - bcrButton.height) + 'px';
+                    }
+                    if ((bcrButton.right + bcrMenu.width) > window.innerWidth) {
+                        l = -(bcrMenu.width - bcrButton.width) + 'px';
+                    }
+                    this.menu.style.top = t;
+                    this.menu.style.left = l;
                 }
-                if ((bcrButton.right + bcrMenu.width) > window.innerWidth) {
-                    l = -(bcrMenu.width - bcrButton.width) + 'px';
-                }
-                this.menu.style.top = t;
-                this.menu.style.left = l;
-
             }
         })
     </script>

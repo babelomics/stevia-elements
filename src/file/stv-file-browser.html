@@ -45,8 +45,9 @@
             box-sizing: border-box;
             height: 20px;
             padding: 0 7px;
-            border-top: 1px solid rgba(130, 130, 130, 0.2);
+            border-top: 1px solid rgba(130, 130, 130, 0.5);
             color: var(--secondary-text-color);
+            background-color: var(--hover-color);
         }
 
         #main {
@@ -205,7 +206,7 @@
                 <div class="resizer" id="mainmenuresizer"></div>
             </div>
             <div id="maincontent">
-                <stv-folder-list id="folderList" user-data="{{userData}}" search-by-type="{{searchByType}}" search-by="{{searchBy}}" on-fileselect="handleFileSelect" on-upload-file="handleUploadFile" on-back="handleBackFolder" on-need-refresh="handleNeedRefresh" folder="{{folder}}" files="{{files}}" mode="{{mode}}" on-filedblclick="handleFileDblClick" on-previewfile="handlePreviewFile" disable-icon-view="{{disableIconView}}" columns="{{columns}}">
+                <stv-folder-list id="folderList" user-data="{{userData}}" search-by-type="{{searchByType}}" search-by="{{searchBy}}" on-fileselect="handleFileSelect" on-upload-file="handleUploadFile" on-back="handleBackFolder" on-need-refresh="handleNeedRefresh" folder="{{folder}}" files="{{filteredFiles}}" mode="{{mode}}" on-filedblclick="handleFileDblClick" on-previewfile="handlePreviewFile" disable-icon-view="{{disableIconView}}" columns="{{columns}}" hide-file-column="{{hideFileColumn}}" hide-upload-btn="{{hideUploadBtn}}" hide-download-btn="{{hideDownloadBtn}}">
                 </stv-folder-list>
             </div>
         </div>
@@ -215,10 +216,10 @@
             <div class="flex"></div>
             <content id="customButtons" select=".custom-button"></content>
             <div id="searchBar" class="horizontal layout">
-                <div class="stv-btn stv-btn-shdw file" on-click="handleSearchByType" data-checked$="{{computeSearchByType(searchByType, 'all')}}" data-value="all">All</div>
-                <div class="stv-btn stv-btn-shdw file" on-click="handleSearchByType" data-checked$="{{computeSearchByType(searchByType, 'job')}}" data-value="job"><i class="fa fa-flask"></i></div>
-                <div class="stv-btn stv-btn-shdw file" on-click="handleSearchByType" data-checked$="{{computeSearchByType(searchByType, 'folder')}}" data-value="folder"><i class="fa fa-folder"></i></div>
-                <div class="stv-btn stv-btn-shdw file" on-click="handleSearchByType" data-checked$="{{computeSearchByType(searchByType, 'file')}}" data-value="file"><i class="fa fa-file"></i></div>
+                <div hidden="{{hideFilterBtns}}" class="stv-btn stv-btn-shdw filter-file" on-click="handleSearchByType" data-checked$="{{computeSearchByType(searchByType, 'all')}}" data-value="all">All</div>
+                <div hidden="{{hideFilterBtns}}"class="stv-btn stv-btn-shdw filter-file" on-click="handleSearchByType" data-checked$="{{computeSearchByType(searchByType, 'job')}}" data-value="job"><i class="fa fa-flask"></i></div>
+                <div hidden="{{hideFilterBtns}}"class="stv-btn stv-btn-shdw filter-file" on-click="handleSearchByType" data-checked$="{{computeSearchByType(searchByType, 'folder')}}" data-value="folder"><i class="fa fa-folder"></i></div>
+                <div hidden="{{hideFilterBtns}}"class="stv-btn stv-btn-shdw filter-file" on-click="handleSearchByType" data-checked$="{{computeSearchByType(searchByType, 'file')}}" data-value="file"><i class="fa fa-file"></i></div>
                 <div class="flex" style="margin-left:5px;">
                     <input id="searchInput" class="stv" type="text" style="width:100%;" placeholder="Search by name..." value="{{searchBy::input}}">
                 </div>
@@ -295,6 +296,10 @@
                 type: Array,
                 notify: true
             },
+            filteredFiles: {
+                type: Array,
+                notify: true
+            },
             bioformats: {
                 type: Array,
                 value: function() {
@@ -337,7 +342,9 @@
             },
             searchByType: {
                 type: String,
-                value: "all",
+                value: function() {
+                    return ["all"];
+                },
                 reflectToAttribute: true
             },
             hideTree: {
@@ -347,6 +354,26 @@
             },
             columns: {
                 type: Array
+            },
+            hideFileColumn: {
+                type: Boolean,
+                value: false,
+                reflectToAttribute: true
+            },
+            hideUploadBtn: {
+                type: Boolean,
+                value: false,
+                reflectToAttribute: true
+            },
+            hideDownloadBtn: {
+                type: Boolean,
+                value: false,
+                reflectToAttribute: true
+            },
+            hideFilterBtns: {
+                type: Boolean,
+                value: false,
+                reflectToAttribute: true
             }
         },
         userDataChanged: function(neo, old) {
@@ -385,6 +412,7 @@
             this.set('selectedFile', null);
             this.set('folders', []);
             this.set('files', []);
+            this.set('filteredFiles', []);
             this.set('loading', false);
             this._setInitialSelection();
             // this.set('contentData', '');
@@ -533,20 +561,45 @@
                 console.log(e.detail.file);
             }
         },
-        openFolder: function(folderId) {
+        openFolder: function(folderId, cb) {
             this.files = [];
-            this.refreshFolderFiles(folderId);
+            this.refreshFolderFiles(folderId, cb);
         },
-        refreshFolderFiles: function(folderId) {
+        refreshFolderFiles: function(folderId, cb) {
             var me = this;
             this.set('loading', true);
-            this._getFilesInFolder(folderId, function(file) {
+            this._getFilesInFolder(folderId, function(filteredFiles, file) {
+                if (me.selectedFile != null) {
+                    var foundFile;
+                    for (var i = 0; i < filteredFiles.length; i++) {
+                        var f = filteredFiles[i];
+                        if (f._id == me.selectedFile._id) {
+                            foundFile = f;
+                        }
+                    }
+                    me.set('selectedFile', foundFile);
+                } else {
+                    me.set('selectedFile', null);
+                }
+
                 me.set('folder', file);
+                me.set('filteredFiles', filteredFiles);
                 me.set('files', file.files);
-                me.set('loading', false);
-                me.$.folderList.set('selected', null);
+                me.fire('openfolder', {
+                    files: file.files,
+                    filteredFiles: filteredFiles
+                });
+
                 me.refresFoldersPath();
+
+                me.set('loading', false);
+                if(cb){
+                    cb();
+                }
             });
+        },
+        refreshFolderList: function() {
+            this.$.folderList.refreshFolderList();
         },
         refresFoldersPath: function() {
             var index = this.treeIndex;
@@ -562,6 +615,7 @@
             var me = this;
             var folderId = e.currentTarget.folder._id;
             this.files = [];
+            this.filteredFiles = [];
             this.refreshFolderFiles(folderId);
         },
         handleTreeItemClick: function(e) {
@@ -581,6 +635,7 @@
                 folderId = this.userData.home._id;
             }
             this.files = [];
+            this.filteredFiles = [];
             this.refreshFolderFiles(folderId);
         },
 
@@ -610,7 +665,7 @@
             var me = this;
 
             var bfList = [];
-            if (this.bioformats > 0) {
+            if (this.bioformats.length > 0) {
                 var bfList = ['NONE'];
                 for (var i = 0; i < this.bioformats.length; i++) {
                     var bf = this.bioformats[i];
@@ -624,7 +679,7 @@
                 type: 'FILE,FOLDER'
             };
 
-            if (bfList > 0 && (this.mode === 'file' || this.mode === 'folder')) {
+            if (bfList.length > 0 && (this.mode === 'file' || this.mode === 'folder')) {
                 query.bioformat = bfList.join(',');
             }
 
@@ -636,9 +691,8 @@
                     success: function(response) {
                         if (response.response[0].error == null) {
                             var file = response.response[0].results[0];
-                            var files = me._filterFiles(file.files);
-                            file.files = files;
-                            callback(file);
+                            var filteredFiles = me._filterFiles(file.files);
+                            callback(filteredFiles, file);
                         } else {
                             console.log(response.response[0].error);
                         }
@@ -707,12 +761,33 @@
             }
         },
         handleSearchByType: function(e) {
-            this.searchByType = e.currentTarget.dataset.value;
-
+            var typeClicked = e.currentTarget.dataset.value;
+            if (typeClicked == 'all') {
+                this.set('searchByType', ['all']);
+            } else {
+                var aux = [];
+                for (var i = 0; i < this.searchByType.length; i++) {
+                    var it = this.searchByType[i];
+                    if (it != 'all') {
+                        aux.push(it);
+                    }
+                }
+                var idx = aux.indexOf(typeClicked);
+                if (idx == -1) {
+                    aux.push(typeClicked);
+                } else {
+                    aux.splice(idx, 1);
+                }
+                this.set('searchByType', aux);
+            }
         },
         computeSearchByType: function(type, value) {
-            // debugger
-            return type === value;
+            var idx = this.searchByType.indexOf(value);
+            if (idx == -1) {
+                return false;
+            } else {
+                return true;
+            }
         },
         computeSize: function(userData, size) {
             return stv.utils.humanFileSize(size);

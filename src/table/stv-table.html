@@ -5,7 +5,7 @@
 
 <dom-module id="stv-table">
     <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning">
-        :host {
+         :host {
             display: block;
             position: relative;
             font-size: 13px;
@@ -25,7 +25,7 @@
             z-index: 1;
         }
 
-        :host[enable-paging] .scrollfix {
+         :host[enable-paging] .scrollfix {
             display: none;
         }
 
@@ -63,7 +63,7 @@
             background-color: inherit;
         }
 
-        :host[enable-paging] .table-header-row {
+         :host[enable-paging] .table-header-row {
             overflow-y: hidden;
         }
 
@@ -124,7 +124,7 @@
             background-color: inherit;
         }
 
-        :host[enable-paging] #filterRow {
+         :host[enable-paging] #filterRow {
             overflow-y: hidden;
         }
 
@@ -154,15 +154,15 @@
             background-color: #fafafa;
         }
 
-        :host>.table-body {
+         :host>.table-body {
             overflow-y: scroll;
         }
 
-        :host[enable-paging]>.table-body {
+         :host[enable-paging]>.table-body {
             overflow-y: hidden;
         }
 
-        :host[enable-filter]>.table-body {
+         :host[enable-filter]>.table-body {
             height: calc(100% - 88px);
         }
 
@@ -296,8 +296,8 @@
             margin-right: 15px;
         }
 
-        :host[enable-paging] .table-filter-field:last-child>.select,
-        :host[enable-paging] .table-filter-field:last-child>input[type=text] {
+         :host[enable-paging] .table-filter-field:last-child>.select,
+         :host[enable-paging] .table-filter-field:last-child>input[type=text] {
             margin-right: 1px;
         }
 
@@ -625,7 +625,7 @@
                     var listHeight = this.$.list.getBoundingClientRect().height;
                     if (listHeight != 0) {
                         var n = listHeight / 30;
-                        this.set('pageSize', parseInt(Math.floor(n)))
+                        this.set('pageSize', parseInt(Math.floor(n)));
                     }
                 }, 150);
             },
@@ -697,12 +697,14 @@
             /* LISTENERS */
             handleScroll: function(e) {
                 if (this.enablePaging == true) {
-                    e.preventDefault();
-                    if (e.deltaY > 0) {
-                        this.handleNextClick();
-                    }
-                    if (e.deltaY < 0) {
-                        this.handlePreviousClick();
+                    if (e.shiftKey == false) {
+                        e.preventDefault();
+                        if (e.deltaY > 0) {
+                            this.handleNextClick();
+                        }
+                        if (e.deltaY < 0) {
+                            this.handlePreviousClick();
+                        }
                     }
                 }
             },
@@ -873,11 +875,14 @@
                 this.viewDataChanged();
             },
             clear: function() {
+                this.clearData();
+                this.columns = [];
+            },
+            clearData: function() {
                 this.request = null;
                 this.data = [];
                 this.viewData = [];
                 this.currentPage = 1;
-                this.columns = [];
             },
             refresh: function() {
                 this.updateColumns();
@@ -1102,13 +1107,13 @@
             },
             _applyFilters: function() {
                 if (this.enableRemote) {
-                  var filter=[];
-                  for (var key in this.filters) {
-                    var field = key;
-                    var search=this.filters[key].query;
-                    filter.push(field+":"+search);
-                  }
-                  this.set('request.search', filter.join(","));
+                    var filter = [];
+                    for (var key in this.filters) {
+                        var field = key;
+                        var search = this.filters[key].query;
+                        filter.push(field + ":" + search);
+                    }
+                    this.set('request.search', filter.join(","));
                 } else {
                     for (var i = 0; i < this.data.length; i++) {
                         var row = this.data[i];
@@ -1597,13 +1602,17 @@
                 this.loading = loading;
             },
             allowDrop: function(e) {
-                console.log("drag!!!")
+                // console.log("drag!!!")
                 e.preventDefault();
             },
             drop: function(e) {
                 e.preventDefault();
-                var data = JSON.parse(e.dataTransfer.getData("rowData"));
-                this.push('data', data);
+                try {
+                    var data = JSON.parse(e.dataTransfer.getData("rowData"));
+                    this.push('data', data);
+                } catch (ex) {
+                    return;
+                }
             },
             drag: function(e) {
                 e.dataTransfer.setData("rowData", JSON.stringify(e.currentTarget._rowData));
@@ -1865,6 +1874,68 @@
                 cEl.classList.add('column-' + column.name.replace(/\s/g, '_'));
                 el.appendChild(cEl);
 
+            },
+
+            /*UTILS*/
+            parseDelimitedSeparatedValues: function(content, columns, delimiter) {
+                if (delimiter == null) {
+                    console.log('No delimiter provided, \\t will be used.');
+                    delimiter = '\t';
+                }
+                var lines = content.split('\n'),
+                    data = [],
+                    line, fields, item;
+                for (var i = 0; i < lines.length; i++) {
+                    line = lines[i].trim();
+                    if (line != "") {
+                        fields = line.split('\t');
+                        item = {};
+                        for (var j = 0; j < columns.length; j++) {
+                            c = columns[j];
+                            item[c.name] = fields[j];
+                        }
+                        data.push(item);
+                    }
+                }
+                return data;
+            },
+            getDelimitedSeparatedValues: function(data, columns, delimiter) {
+                if (!delimiter) {
+                    console.log('No delimiter provided, \\t will be used.');
+                    delimiter = '\t';
+                }
+                // Attribute names
+                var text = '';
+                var lc = columns.length;
+                var lcminus1 = lc - 1;
+                for (var i = 0; i < lc; i++) {
+                    var name = columns[i].name;
+                    if (i < lcminus1) {
+                        text += name + delimiter;
+                    } else {
+                        text += name;
+                    }
+                }
+                text += '\n';
+                var item, attr;
+                for (var i = 0, l = data.length; i < l; i++) {
+                    item = data[i];
+                    for (var j = 0; j < lc; j++) {
+                        var column = columns[j];
+                        var t = ''
+                        if (item[column.name] != null) {
+                            t = item[column.name];
+                        }
+                        if (j < lcminus1) {
+                            text += t + delimiter;
+                        } else {
+                            text += t;
+                        }
+
+                    }
+                    text += '\n';
+                }
+                return text;
             }
         })
     </script>

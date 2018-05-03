@@ -136,14 +136,24 @@ var SteviaManager = {
         move: function (args) {
             return SteviaManager._doRequest(args, 'files', 'move');
         },
+        rename: function (args) {
+            return SteviaManager._doRequest(args, 'files', 'rename');
+        },
         write: function (args) {
             return SteviaManager._doRequest(args, 'files', 'write');
+        },
+        setBioformat: function (args) {
+            return SteviaManager._doRequest(args, 'files', 'set-bioformat');
         },
         upload: function (args) {
             var url = SteviaManager._url({
                 query: {
                     name: args.name,
-                    parentId: args.parentId
+                    parentId: args.parentId,
+                    extract: args.extract,
+                    deleteCompressed: args.deleteCompressed,
+                    extractFolder: args.extractFolder,
+                    overwriteFiles: args.overwriteFiles
                 },
                 request: {}
             }, 'files', 'upload');
@@ -187,7 +197,7 @@ var SteviaManager = {
             var request = new XMLHttpRequest();
             request.onload = function () {
                 var contentType = this.getResponseHeader('Content-Type');
-                if (contentType.indexOf('application/json') != -1) {
+                if (contentType != null && contentType.indexOf('application/json') != -1) {
                     var json = JSON.parse(this.response);
                     if (json.error == null) {
                         args.request.success(json, this);
@@ -369,6 +379,16 @@ var SteviaManager = {
             }
             chunkId++;
         }
+        if (SIZE == 0) {
+            chunkMap[0] = {
+                id: chunkId,
+                start: 0,
+                end: 0,
+                size: 0,
+                done: false,
+                last: true
+            };
+        }
         if (resume) {
             var resumeFormData = new FormData();
             resumeFormData.append('resume_upload', resume);
@@ -485,7 +505,24 @@ var SteviaManager = {
             request: {
                 async: true,
                 success: function (response) {
-                    cb(response.response[0].results[0]);
+                    cb(response.response[0].results);
+                },
+                error: function (response) {
+
+                }
+            }
+        });
+    },
+    renameFile: function (fileId, newname, cb) {
+        SteviaManager.files.rename({
+            id: fileId,
+            query: {
+                newname: newname
+            },
+            request: {
+                async: true,
+                success: function (response) {
+                    cb(response);
                 },
                 error: function (response) {
 
@@ -570,6 +607,26 @@ var SteviaManager = {
     //Download the file given a file Id.
     downloadFile: function (fileId, getContent) {
         var url = this.getFileURL(fileId);
+        var link = document.createElement('a');
+        link.href = url;
+        var event = new MouseEvent('click', {
+            'view': window,
+            'bubbles': true,
+            'cancelable': true
+        });
+        link.dispatchEvent(event);
+    },
+    downloadFolderFiles: function (fileId, pattern, getContent) {
+        var url = SteviaManager.files.download({
+            id: fileId,
+            query: {
+                sid: Cookies("bioinfo_sid"),
+                pattern: encodeURIComponent(pattern)
+            },
+            request: {
+                url: true
+            }
+        });
         var link = document.createElement('a');
         link.href = url;
         var event = new MouseEvent('click', {

@@ -17,7 +17,10 @@
         }
 
         .col {
-            text-align: center;
+            /*text-align: center;*/
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .filename {
@@ -59,7 +62,7 @@
     <template>
         <template is="dom-if" if="{{computeViewMode(viewMode, 'list')}}">
             <div id="list" class="horizontal layout">
-                <div id="name" class="horizontal layout" style$="width:calc(100% - {{colSumW}}px);">
+                <div hidden="{{computeFileColumn(hideFileColumn,file)}}" id="name" class="horizontal layout" style$="width:calc(100% - {{computeFileWidth(file,colSumW)}}px);">
                     <div class="icon"><i class$="{{computeIcon(file)}}"></i></div>
                     <template is="dom-if" if="{{hasJob(file)}}">
                         <div class="icon"><i class$="{{computeJobIcon(file.job)}}"></i></div>
@@ -67,7 +70,8 @@
                     <div class="filename" title$="{{file.name}}">{{file.name}}</div>
                 </div>
                 <template is="dom-repeat" items="{{columns}}" as="column">
-                    <div style$="width:{{column.width}}px;" class="col" title="{{computeColumn(column,file)}}">{{computeColumn(column,file)}}</div>
+                    <div class="icon"><i class$="{{computeColumnIcon(column, file, columns)}}"></i></div>
+                    <div style$="width:{{column.width}}px;" class="col" title="{{computeColumn(column,file, columns)}}">{{computeColumn(column,file, columns)}}</div>
                 </template>
             </div>
         </template>
@@ -95,6 +99,11 @@
             columns: {
                 type: Array,
                 observer: 'columnsChanged'
+            },
+            hideFileColumn: {
+                type: Boolean,
+                value: false,
+                reflectToAttribute: true
             },
             colSumW: {
                 type: Number,
@@ -161,6 +170,35 @@
                 return file[column.name];
             } else {
                 return column.formula(file);
+            }
+        },
+        computeFileColumn: function(hideFileColumn, file) {
+            // if (file.type == 'FOLDER') {
+            //     return false;
+            // } else {
+            return hideFileColumn;
+            // }
+        },
+        computeFileWidth: function(file, colSumW) {
+            if (file.type == 'FOLDER') {
+                return 0;
+            } else {
+                return colSumW;
+            }
+        },
+        computeColumnIcon: function(column, file) {
+            if (column.icon != null) {
+                if (file.type == 'FOLDER') {
+                    if (file.job != null) {
+                        return 'fa fa-flask';
+                    } else {
+                        return 'fa fa-folder';
+                    }
+                } else {
+                    return 'fa ' + column.icon;
+                }
+            } else {
+                return '';
             }
         }
     });

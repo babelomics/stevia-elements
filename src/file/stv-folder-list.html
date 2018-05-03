@@ -30,13 +30,22 @@
         }
 
         #content.list {
-            height: calc(100% - 55px);
+            height: calc(100% - 75px);
             overflow-y: scroll;
             overflow-x: hidden;
         }
 
+        .content-info-bar {
+            box-sizing: border-box;
+            height: 20px;
+            padding: 0 7px;
+            border-top: 1px solid rgba(130, 130, 130, 0.5);
+            color: var(--secondary-text-color);
+            background-color: var(--hover-color);
+        }
+
         #content.list.info {
-            height: calc(100% - 115px);
+            height: calc(100% - 135px);
         }
 
         #content.icon {
@@ -139,7 +148,7 @@
                     <i class="fa fa-arrow-left"></i>
                 </div>
 
-                <div class="stv-btn stv-btn-shdw upload-btn" hidden$="{{isFolderMode(mode)}}" on-click="handleUploadFile" title="Upload a new file">
+                <div class="stv-btn stv-btn-shdw upload-btn" hidden$="{{isUploadHidden(mode,hideUploadBtn)}}" on-click="handleUploadFile" title="Upload a new file">
                     <i class="fa fa-cloud-upload"></i> Upload
                 </div>
 
@@ -149,10 +158,10 @@
                 <div class="stv-btn stv-btn-shdw" hidden$="{{computeDelete(selected)}}" on-click="handleDeleteFile" title="Remove file/folder/job">
                     <i class="fa fa-trash"></i>
                 </div>
-                <div class="stv-btn stv-btn-shdw" hidden$="{{checkSelectedFile(selected)}}" on-click="handlePreviewFile" title="View file">
+                <div class="stv-btn stv-btn-shdw" hidden$="{{checkPreviewFile(selected)}}" on-click="handlePreviewFile" title="View file">
                     <i class="fa fa-eye"></i>
                 </div>
-                <div class="stv-btn stv-btn-shdw" hidden$="{{checkSelectedFile(selected)}}" on-click="handleDownloadFile" title="Download file">
+                <div class="stv-btn stv-btn-shdw" hidden$="{{checkSelectedFile(selected,hideDownloadBtn)}}" on-click="handleDownloadFile" title="Download file">
                     <i class="fa fa-download"></i>
                 </div>
                 <div class="stv-btn stv-btn-shdw" hidden$="{{checkSelectedJob(selected)}}" on-click="handleViewJob" title="View job results">
@@ -166,7 +175,7 @@
                 <div class="stv-btn stv-btn-shdw" on-click="handleViewInfo" style="margin-right: 5px;" hidden$="{{checkSelected(selected)}}" title="Show info ">
                     <i class="fa fa-info"></i>
                 </div>
-                <div class="stv-btn stv-btn-shdw" on-click="handleViewMode" hidden$="{{disableIconView}}" title="Change icon/list view">
+                <div class="stv-btn stv-btn-shdw" on-click="handleViewMode" hidden$="{{disableIconView}}" title="Change icon/list view" style="margin-right: 5px;">
                     <i class$="{{computeViewModeIconClass(viewMode)}}"></i>
                 </div>
                 <!--<div class="stv-btn stv-btn-shdw" on-click="handleIcon">-->
@@ -176,29 +185,33 @@
         </div>
 
         <template is="dom-if" if="{{computeHeader(viewMode)}}">
-            <div id="header" class="horizontal layout">
-                <div class="flex" data-sortorder$="{{_sortOrder(sort,sortASC,'name')}}" data-sort="name" on-click="changeSort">Name</div>
+            <div id="header" class="horizontal layout center">
+                <!-- <i class="fa fa-sort" on-click="changeSort" data-sort="createdAt" title="Date sort" style="margin-right:2px;"></i> -->
+                <div hidden="{{hideFileColumn}}" class="flex" data-sortorder$="{{_sortOrder(sort,sortASC,'name')}}" data-sort="name" on-click="changeSort">Name</div>
                 <template is="dom-repeat" items="{{columns}}" as="column">
-                    <div style$="width:{{column.width}}px;" class$="col" data-sortorder$="{{_sortOrder(sort,sortASC,column.name)}}" data-sort$="{{column.name}}" on-click="changeSort">{{column.title}}</div>
+                    <div style$="width:{{compColumTitleWidth(column)}}px;" class$="col" data-sortorder$="{{_sortOrder(sort,sortASC,column.name)}}" data-sort$="{{column.name}}" on-click="changeSort">{{column.title}}</div>
                 </template>
             </div>
         </template>
         <div id="content" class$="{{computeContentClass(viewMode,showInfo)}}">
             <div class$="{{computeClassViewMode(viewMode)}}">
-                <template is="dom-repeat" items="{{files}}" filter="{{checkFilters(searchBy,searchByType)}}" sort="{{checkSort(sort,sortASC)}}">
-                    <stv-folder-list-item file="{{item}}" on-dblclick="handleFileDblClick" on-click="handleFileClick" view-mode="{{viewMode}}" columns="{{columns}}" on-dragstart="handleDragStart" draggable="true" on-drop="handleDragDrop" on-dragover="handleDragOver" on-dragleave="handleDragLeave">
+                <template rendered-item-count="{{_filteredCount}}" is="dom-repeat" items="{{files}}" filter="{{checkFilters(searchBy,searchByType)}}" sort="{{checkSort(sort,sortASC)}}">
+                    <stv-folder-list-item file="{{item}}" on-dblclick="handleFileDblClick" on-click="handleFileClick" view-mode="{{viewMode}}" columns="{{columns}}" hide-file-column="{{hideFileColumn}}" on-dragstart="handleDragStart" draggable="true" on-drop="handleDragDrop" on-dragover="handleDragOver" on-dragleave="handleDragLeave">
                     </stv-folder-list-item>
                 </template>
             </div>
         </div>
+        <div class="content-info-bar horizontal layout center start-justified">
+            <span>Showing {{_filteredCount}} items of {{files.length}}</span>
+        </div>
 
         <div id="fileInfo" class="vertical layout" hidden="{{!showInfo}}">
-            <div class="horizontal layout">
+            <div class="horizontal layout center">
                 <i class="fa fa-file-o" hidden="{{isFile}}"></i>
                 <i class="fa fa-folder" hidden="{{!isFile}}"></i>&nbsp;
                 <span>{{fileName}}</span>
             </div>
-            <div class="horizontal layout">
+            <div class="horizontal layout center">
                 <span class="data">Type: &nbsp;</span>
                 <span class="value lowercase">{{fileType}}</span>
                 <!-- <span class="data">Format: &nbsp;</span>
@@ -206,7 +219,7 @@
                 <span class="data">Bioformat: &nbsp;</span>
                 <span class="value lowercase">{{fileBioformat}}</span>
             </div>
-            <div class="horizontal layout">
+            <div class="horizontal layout center">
                 <span class="data">Creation Date: &nbsp;</span>
                 <span>{{fileDate}}</span>
             </div>
@@ -269,8 +282,7 @@
                     value: ""
                 },
                 searchByType: {
-                    type: String,
-                    value: "all"
+                    type: String
                 },
                 userData: {
                     type: Object,
@@ -306,12 +318,40 @@
                             return stv.utils.months[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
                         }
                     }]
+                },
+                hideFileColumn: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
+                },
+                hideUploadBtn: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
+                },
+                hideDownloadBtn: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
+                },
+                _filteredCount: {
+                    type: Number
                 }
             },
             created: function() {
                 this.fileBelongsToJob = {};
             },
             ready: function() {},
+
+            refreshFolderList: function() {
+                var aux = [];
+                for (var i = 0; i < this.columns.length; i++) {
+                    var c = this.columns[i];
+                    aux.push(c);
+                };
+                this.set('columns', aux);
+            },
+
             handleUploadFile: function(e) {
                 this.set('selected', null);
                 this.fire('upload-file');
@@ -416,53 +456,74 @@
                 }
                 // return selected == null;
             },
-            checkSelectedFile: function(selected) {
+            checkPreviewFile: function(selected) {
                 return selected == null || selected.type != "FILE";
+            },
+            checkSelectedFile: function(selected, hideDownloadBtn) {
+                return hideDownloadBtn || selected == null;
             },
             checkSelectedJob: function(selected) {
                 return selected == null || selected.job == undefined;
             },
 
-            checkFilters: function(searchBy, type) {
-                type = type.toUpperCase();
-                if (!searchBy) {
-                    // set filter to null to disable filtering
+            checkFilters: function(searchBy, searchByType) {
+                // set filter to null to disable filtering
+                var check = function(typeStr) {
+                    return searchByType.indexOf(typeStr.toLowerCase()) != -1;
+                };
+                var fileMatch = function(item) {
+                    var allFlag = false,
+                        jobFlag = false,
+                        fileFlag = false,
+                        folderFlag = false;
+                    if (check("ALL")) {
+                        allFlag = true;
+                    }
+                    if (check("JOB")) {
+                        jobFlag = (item.job != null);
+                    }
+                    if (check("FILE")) {
+                        fileFlag = (item.type == 'FILE');
+                    }
+                    if (check("FOLDER")) {
+                        folderFlag = (item.job == null && item.type == 'FOLDER');
+                    }
+                    return (allFlag || jobFlag || fileFlag || folderFlag);
+                };
+                if (searchBy == "") {
                     return function(item) {
-                        var checkType = true;
-                        if (type === "ALL") {
-                            checkType = true;
-                        } else if (type === "JOB") {
-
-                            checkType = (item.job && item.job !== null);
-                        } else if (type === "FILE" || type === "FOLDER") {
-                            checkType = (item.type === type);
-                        } else {
-                            checkType = false;
-                        }
-                        return checkType;
+                        return fileMatch(item);
                     }
                 } else {
                     // return a filter function for the current search string
-                    searchBy = searchBy.toLowerCase();
-                    return function(item) {
-                        var filename = item.name;
-                        var checkType = true;
-                        if (type === "ALL") {
-                            checkType = true;
-                        } else if (type === "JOB") {
-                            checkType = (item.job && item.job !== null);
-                        } else if (type === "FILE" || type === "FOLDER") {
-                            checkType = (item.type === type);
-                        } else {
-                            checkType = false;
+                    var searchBy = searchBy.toLowerCase();
+
+                    var searchableColmuns = [];
+                    for (var i = 0; i < this.columns.length; i++) {
+                        var c = this.columns[i];
+                        if (c.enableSearch == true) {
+                            searchableColmuns.push(c);
                         }
-                        return filename.indexOf(searchBy) != -1 && checkType;
+                    }
+                    return function(item) {
+                        var matchFlag = fileMatch(item);
+                        var columnFlag = false;
+                        var nameFlag = item.name.toLowerCase().indexOf(searchBy) != -1;
+                        for (var i = 0; i < searchableColmuns.length; i++) {
+                            var c = searchableColmuns[i];
+                            var value = c.formula(item).toLowerCase();
+                            if (value.indexOf(searchBy) != -1) {
+                                columnFlag = true;
+                                break;
+                            }
+                        }
+                        return (nameFlag || columnFlag) && matchFlag;
                     };
 
                 }
             },
-            isFolderMode: function(mode) {
-                return mode === 'folder';
+            isUploadHidden: function(mode, hideUploadBtn) {
+                return hideUploadBtn || mode === 'folder';
             },
 
             handleDownloadFile: function(e) {
@@ -479,6 +540,9 @@
                                 if (response.response[0].error == null) {
                                     console.log("delete:");
                                     console.log(response);
+                                    me.fire('filedelete', {
+                                        file: me.selected
+                                    });
                                     me.set('selected', null);
                                 } else {
                                     console.log(response.response[0].error);
@@ -515,6 +579,15 @@
                 } else {
                     return viewMode;
                 }
+            },
+            compColumTitleWidth: function(column) {
+                var c = column.width;
+                if (column.icon != null) {
+                    c += 20;
+                } else {
+                    c += 7;
+                }
+                return c;
             },
             handleViewInfo: function(e) {
                 if (this.selected != null) {
@@ -661,6 +734,18 @@
                                 return new Date(a.createdAt) - new Date(b.createdAt);
                             }
                         }
+                        break;
+                    case "updatedAt":
+                        if (sortASC) {
+                            return function(a, b) {
+                                return new Date(b.updatedAt) - new Date(a.updatedAt);
+                            }
+                        } else {
+                            return function(a, b) {
+                                return new Date(a.updatedAt) - new Date(b.updatedAt);
+                            }
+                        }
+                        break;
                     default:
                         if (sortASC) {
                             return function(a, b) {

@@ -21,12 +21,12 @@
 
         .main {
             position: relative;
-            height: 60px;
+            height: 50px;
             font-size: 18px;
             margin: 0;
             padding: 0;
             text-transform: none;
-            box-shadow: 0 4px 4px 0px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 2px 0px rgba(0, 0, 0, 0.3);
             /*background-color: inherit;*/
             background-color: var(--dark-primary-color);
             color: var(--text-primary-color);
@@ -42,7 +42,7 @@
 
         #tools {
             position: absolute;
-            top: 60px;
+            top: 50px;
             width: 100%;
         }
 
@@ -72,8 +72,10 @@
 
          :host[small] #left>div,
          :host[small] #right>div,
-         :host[small] #menu-wrapper>::content>.menu div.option {
+         :host[small] #menu-wrapper>::content>.menu div.option,
+         :host[small-options] #menu-wrapper>::content>.menu div.option {
             border-bottom-width: 1px;
+            font-size: 15px;
         }
 
         #right>div:hover,
@@ -87,7 +89,8 @@
         }
 
          :host[small] #right>div:hover,
-         :host[small] #menu-wrapper>::content>.menu div.option:hover {
+         :host[small] #menu-wrapper>::content>.menu div.option:hover,
+         :host[small-options] #menu-wrapper>::content>.menu div.option:hover {
             border-bottom-width: 1px;
         }
 
@@ -112,36 +115,6 @@
             cursor: default;
         }
 
-        @media (max-width: 1250px) {
-            div.title {
-                font-size: 24px;
-            }
-            div.description {
-                font-size: 14px;
-            }
-            .option-text {
-                font-size: 0.9em;
-            }
-        }
-
-        @media (max-width: 1150px) {
-            div.title {
-                font-size: 20px;
-            }
-            div.description {
-                font-size: 13px;
-            }
-            .option-text {
-                font-size: 0.8em;
-            }
-        }
-
-        @media (max-width: 1050px) {
-            .option-text {
-                display: none;
-            }
-        }
-
         #icon {
             margin-top: 0px !important;
             margin-bottom: 0px !important;
@@ -164,6 +137,10 @@
 
          :host[small] div.description {
             font-size: 15px;
+        }
+        
+         :host[small] ::content div.icon img {
+            height: 28px !important;
         }
         /*Help menu*/
 

@@ -222,7 +222,7 @@
             <div id="outlineBottomBar" class="horizontal layout end-justified">
                 <i class="fa fa-download download-job" title="Download Job" on-click="handleDownloadJob"></i>
                 <i class="fa fa-trash-o delete-job" title="Delete Job" on-click="handleDeleteJob"></i>
-                <i class="fa fa-refresh relaunch-job" title="Relaunch Job" on-click="handleRelaunchJob"></i>
+                <i hidden$="{{hideRelaunch}}" class="fa fa-refresh relaunch-job" title="Relaunch Job" on-click="handleRelaunchJob"></i>
             </div>
         </div>
         <div id="up" on-click="handleUp" class="button stv-btn stv-btn-shdw" title="Go top"><i class="fa fa-arrow-up"></i></div>
@@ -253,6 +253,11 @@
                     type: Object
                 },
                 tocFixed: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
+                },
+                hideRelaunch: {
                     type: Boolean,
                     value: false,
                     reflectToAttribute: true
@@ -591,6 +596,15 @@
 
                 var img = document.createElement('img');
                 img.setAttribute('src', SteviaManager.getFileURL(this.getFileFromName(name)._id));
+                var width = outEl.getAttribute('width');
+                var height = outEl.getAttribute('height');
+                var reg = new RegExp('^[0-9]+$');
+                if (reg.test(width)) {
+                    img.setAttribute('width', width);
+                }
+                if (reg.test(height)) {
+                    img.setAttribute('height', height);
+                }
 
                 el.appendChild(i);
                 el.appendChild(a);
@@ -855,9 +869,9 @@
                     series: [{
                             name: 'Observations',
                             data: data.data
-                                // tooltip: {
-                                // headerFormat: '<em>Experiment No {point.key}</em><br/>'
-                                // }
+                            // tooltip: {
+                            // headerFormat: '<em>Experiment No {point.key}</em><br/>'
+                            // }
                         }, {
                             name: 'Outlier',
                             color: Highcharts.getOptions().colors[0],
@@ -976,10 +990,24 @@
                 var height = Math.max((window.innerHeight - 120), minHeight);
                 pv.style.height = height + 'px';
 
-                pv.set('hideAltered', true);
-                pv.set('sessionFileNameMap', this.fileNameMap);
-                pv.set('path', outEl.getAttribute('path'));
-                pv.set('pathType', outEl.getAttribute('path-type'));
+                var nodeAttrs = ['labelSize', 'opacity', 'shape', 'color', 'strokeColor', 'size', 'strokeSize'];
+                var edgeAttrs = ['labelSize', 'opacity', 'shaft', 'shape', 'bidirectional', 'color', 'size'];
+                var nodeAttrMap = {};
+                var edgeAttrMap = {};
+                for (var i = 0; i < nodeAttrs.length; i++) {
+                    var att = nodeAttrs[i];
+                    var outColName = outEl.getAttribute('n-' + att);
+                    if (outColName != null) {
+                        nodeAttrMap[att] = outColName;
+                    }
+                }
+                for (var i = 0; i < edgeAttrs.length; i++) {
+                    var att = edgeAttrs[i];
+                    var outColName = outEl.getAttribute('e-' + att);
+                    if (outColName != null) {
+                        edgeAttrMap[att] = outColName;
+                    }
+                }
 
                 if (this.job.tool === 'hipathia') {
                     pv.set('showHipathiaLegend', true);
@@ -988,6 +1016,22 @@
                     pv.set('categoryLabel', 'Pathways');
                     pv.set('circuitLabel', 'Modules');
                 }
+                /*Backward fix*/
+                nodeAttrMap = {
+                    'strokeColor': 'exp',
+                    'color': 'diff.exp',
+                    'size': 'width'
+                }
+                edgeAttrMap = {
+                    'shape': 'head'
+                }
+                pv.nodeAttributeMapping = nodeAttrMap;
+                pv.edgeAttributeMapping = edgeAttrMap;
+
+                pv.set('hideAltered', true);
+                pv.set('sessionFileNameMap', this.fileNameMap);
+                pv.set('path', outEl.getAttribute('path'));
+                pv.set('pathType', outEl.getAttribute('path-type'));
 
                 // pw.style.border = "1px solid #d3d3d3";
                 // pw.style.boxShadow = "0px 0px 4px 0px rgba(0, 0, 0, 0.2)";
@@ -1243,8 +1287,8 @@
                         var name = field.replace(/ /gi, '_');
                         var width = 150;
                         if (i === 0) {
-                            width = 150;
-                            // width = 400;
+                            // width = 150;
+                            width = 400;
                         }
                         columns.push({
                             name: name,
@@ -1263,8 +1307,8 @@
                                     if (window.isNaN != null && !isNaN(field)) {
                                         field = parseFloat(field).toFixed(3);
                                     }
-                                    if(field.indexOf('http') == "0"){
-                                        field = '<a target="_blank" href="'+field+'">'+field+'</a>'
+                                    if (field.indexOf('http') == "0") {
+                                        field = '<a target="_blank" href="' + field + '">' + field + '</a>'
                                     }
                                     column = columns[j];
                                     obj[column.name] = field;
