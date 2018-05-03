@@ -125,7 +125,10 @@
                 }
             },
             isSelected: function(selected, current) {
-                return selected == current;
+                if(selected == current){
+                    return true
+                }
+                return false;
             },
             selectByIndex: function(index) {
                 if (this.disableSelection == false) {

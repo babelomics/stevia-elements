@@ -173,10 +173,12 @@
             var id = e.currentTarget.getAttribute('id');
             var sel = '[data-panel=' + id + ']';
             var el = Polymer.dom(this.$.menu).querySelector(sel);
-            if (e.currentTarget.hidden) {
-                el.removeAttribute('active');
-            } else {
-                el.setAttribute('active', '');
+            if (el != null) {
+                if (e.currentTarget.hidden) {
+                    el.removeAttribute('active');
+                } else {
+                    el.setAttribute('active', '');
+                }
             }
         },
         _userDataChanged: function(neo, old) {
