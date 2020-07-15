@@ -67,13 +67,16 @@
             overflow-y: hidden;
         }
 
+        .pointer {
+            cursor: pointer;
+        }
+
         .table-header-field {
             box-sizing: border-box;
             border-right: 1px solid #d3d3d3;
             /*white-space: nowrap;*/
             /*overflow: hidden;*/
             /*text-overflow: ellipsis;*/
-            cursor: pointer;
             position: relative;
         }
 
@@ -665,6 +668,8 @@
                         } else {
                             value = row[key];
                         }
+                        if (value == undefined)
+                           value = (column.defaultValue) ? column.defaultValue : "";
 
                         dataLine += value + this.separator;
                     }
@@ -1255,7 +1260,10 @@
                     }
                     el.appendChild(subColumnsEl);
                 } else {
-                    el.addEventListener('click', this.handleHeaderFieldClick.bind(this));
+                    if (!column.disableSort) {
+                        el.addEventListener('click', this.handleHeaderFieldClick.bind(this));
+                        el.classList.add('pointer');
+                    }
                 }
                 rowEl.appendChild(el);
             },
@@ -1550,8 +1558,10 @@
                     }
                     cEl.innerHTML = value;
                     if (!this.disableTooltip) {
+                        if (!column.disableTooltip) {
                         var tooltipValue = value;
                         cEl.setAttribute("title", tooltipValue);
+                        }
                     }
 
                     cEl.classList.add('column-' + column.name.replace(/\s/g, '_'));
@@ -1877,15 +1887,19 @@
     </style>
     <template>
         <label class="stv-control">
-            <input type="checkbox" checked$="{{isColumnVisible(column.visible)}}" on-click="handleColumnVisibilityClick">
-            <span>{{column.title}}
-                <template is="dom-if" if="{{column.columns}}">
-                    ,<template is="dom-repeat" items="{{column.columns}}">
-                        <stv-table-subcolum-name column="{{item}}"></stv-table-subcolum-name>
-                    </template>
-                </template>
-            </span>
+            <input type="checkbox" checked$="{{isColumnVisible(column.visible)}}" on-click="handleColumnVisibilityClick" value="{{column.name}}">
+            <span inner-h-t-m-l="{{column.title}}"> </span>
         </label>
+        <template is="dom-if" if="{{column.columns}}">
+              <div style="padding-left: 2rem">
+                    <template is="dom-repeat" items="{{column.columns}}">
+                            <label class="stv-control" >
+                                <input type="checkbox" checked$="{{isColumnVisible(item.visible)}}" on-click="handleColumnVisibilityClick" value="{{item.name}}">
+                                <span inner-h-t-m-l="{{item.title}}"> </span>
+                            </label>
+                    </template>
+               </div>
+        </template>
     </template>
     <script>
         Polymer({
@@ -1896,7 +1910,16 @@
                 }
             },
             handleColumnVisibilityClick: function(e) {
-                this.set('column.visible', !this.column.visible);
+                var nameColumn = e.currentTarget.getAttribute("value");
+                if (this.column.name === nameColumn) {
+                    this.set('column.visible', !this.column.visible);
+                } else {
+                    var index = this.column.columns.findIndex(function(c) {
+                        return c.name === nameColumn;
+                    });
+
+                    this.column.columns[index].visible = this.column.columns[index].visible == undefined ? false : !this.column.columns[index].visible;
+                }
                 this.fire('column-toggle', this.column);
             },
             isColumnVisible: function(v) {

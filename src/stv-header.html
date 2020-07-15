@@ -44,6 +44,7 @@
             position: absolute;
             top: 60px;
             width: 100%;
+            margin-top: 100px;
         }
 
         #left>div,
@@ -180,7 +181,8 @@
     </style>
     <template>
         <div id="tools">
-            <stv-login id="stvLogin" hide-signup$="{{hideSignup}}" hide-anonymous$="{{hideAnonymous}}" menu-option="login" on-login="handleLogin" on-remember="handleRemember" on-signup="handleSignup" on-anonymous="handleAnonymous">
+            <stv-login id="stvLogin" hide-signup$="{{hideSignup}}" hide-anonymous$="{{hideAnonymous}}" hide-request-accout$="{{hideRequestAccount}}"
+                       menu-option="login" on-login="handleLogin" on-remember="handleRemember" on-signup="handleSignup" on-anonymous="handleAnonymous" on-request-account="handleRequestAccount">
             </stv-login>
 
             <stv-signup id="stvSignup" on-login="handleLogin" menu-option="signup">
@@ -288,6 +290,11 @@
                     value: false,
                     reflectToAttribute: true
                 },
+                hideRequestAccount: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
+                },
                 userData: {
                     type: Object,
                     notify: true
@@ -377,6 +384,12 @@
             handleAnonymous: function(e) {
                 this.anonymousSign();
             },
+            handleRequestAccount: function(e) {
+                this.parentElement.$.feedback.hidden = !this.parentElement.$.feedback.hidden;
+                this.parentElement.$.feedback.$.emailType.value = "accountRequest";
+                this.parentElement.$.feedback.$.subject.value = "Account creation request";
+                this.fire('change');
+            },
             handleMenu: function(e) {
                 var option = e.currentTarget.dataset['option'];
                 console.log(option);
@@ -416,8 +429,10 @@
             sessionInitiated: function(e) {
                 var me = this;
                 this.isLogged = true;
-                this.selectedOption = 'home';
+                this.selectedOption = 'search';
 
+                // NO CHECK
+                this.userInfoInterval = true;
                 /**START CHECK**/
                 if (!this.userInfoInterval) {
                     this.getUserInfo(); //first call
@@ -465,8 +480,8 @@
                         },
                         request: {
                             success: function(response) {
-                                if (response.response[0].error == null && response.response[0].results.length > 0) {
-                                    me.userData = response.response[0].results[0];
+                                if (response.response[0].error == null && response.response[0].result.length > 0) {
+                                    me.userData = response.response[0].result[0];
                                     me.userText = me._checkUserName(me.userData);
                                     console.info("userData has been modified since last call");
                                 }

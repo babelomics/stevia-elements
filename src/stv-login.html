@@ -6,7 +6,7 @@
             display: block;
             position: absolute;
             box-sizing: border-box;
-            padding: 30px 100px;
+            padding: 30px 70px;
             left: 0;
             right: 0;
             margin: 0px auto 0px auto;
@@ -68,6 +68,7 @@
             </div>
         </div>
         <form id="form" on-keypress="handleFormKey">
+            <div style="padding-right: 30px; padding-left: 30px">
             <label class="stv">User name:</label>
             <input class="stv" type="text" value="{{name::input}}" required pattern="[a-zA-Z0-9._]+">
 
@@ -90,6 +91,12 @@
                 <span class="shortcut" on-click="handleAnonymous">Login as anonymous</span>
                 <br>
                 <span style="color:#888">All data will be deleted on logout</span>
+            </div>
+            </div>
+            <div hidden$="{{hideRequestAccount}}" class="right">
+                <br>
+                <span>If you don't have a account, you can request one by clicking</span>
+                <span class="shortcut" on-click="handleRequestAccount" style="text-decoration: underline">here</span>
             </div>
         </form>
         <div hidden$="{{!message}}" class="message stv-note stv-note-warn">&nbsp;{{message}}</div>
@@ -117,6 +124,11 @@
                     reflectToAttribute: true
                 },
                 hideAnonymous: {
+                    type: Boolean,
+                    value: false,
+                    reflectToAttribute: true
+                },
+                hideRequestAccount: {
                     type: Boolean,
                     value: false,
                     reflectToAttribute: true
@@ -151,17 +163,28 @@
                 this.clean();
                 this.fire('anonymous');
             },
+            handleRequestAccount: function() {
+                this.clean();
+                this.fire('request-account');
+            },
             _login: function() {
                 var me = this;
-                // console.log(this.name)
-                // console.log(this.password)
                 SteviaManager.users.login({
                     id: this.name,
-                    sid: CryptoJS.SHA1(this.password).toString(),
+                    //sid: CryptoJS.SHA1(this.password).toString(),
                     request: {
+                        method: "POST",
+                        headers:{
+                            Accept: 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body:
+                            //password: this.password
+                            "{\"password\": \"" + this.password + "\"}"
+                        ,
                         success: function(response) {
                             if (response.response[0].error == null) {
-                                Cookies.set('bioinfo_sid', response.response[0].results[0].id, {
+                                Cookies.set('bioinfo_sid', response.response[0].result[0].id, {
                                     path: window.location.pathname
                                 });
                                 Cookies.set('bioinfo_user', me.name, {
@@ -185,7 +208,7 @@
                             Cookies.expire('bioinfo_user', {
                                 path: window.location.pathname
                             });
-                            me.message = response.error.split(":")[1];
+                            me.message = response.error;
                             if (response.errorEvent) {
                                 me.message = 'Server error, try again later.';
                             }

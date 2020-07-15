@@ -42,8 +42,8 @@
                 <textarea class="stv" id="gene" name="gene" placeholder="BRCA2,PPL" value="{{geneValue::change}}" rows="3" >
                 </textarea>
 
-                <label class="stv" hidden$="{{!enableSnpid}}">SNPId:</label>
-                <textarea class="stv" id="snpId" name="snpId" placeholder="rs9988179,rs140361978" value="{{snpIdValue::change}}" rows="3" hidden$="{{!enableSnpid}}">
+                <label class="stv" hidden$="{{!enableSnpid}}">SNPId/HGVSc/HGVSp:</label>
+                <textarea class="stv" id="snpId" name="snpId" placeholder="rs9988179,ENST00000342066.8:c.1027T>C" value="{{snpIdValue::change}}" rows="3" hidden$="{{!enableSnpid}}">
                 </textarea>
             </div>
         </stv-form-box>
@@ -159,7 +159,8 @@
             checkSNPId: function() {
                 var ids = [];
                 if (this.snpIdValue) {
-                    ids = this.snpIdValue.toLowerCase().split(/,|\n/);
+                   // CSVS ids = this.snpIdValue.toLowerCase().split(/,|\n/);
+                    ids = this.snpIdValue.split(/,|\n/);
                     var idsQuery = ids.join(",");
                     return idsQuery;
                 } else {

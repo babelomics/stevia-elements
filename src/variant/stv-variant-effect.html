@@ -29,7 +29,7 @@
         }
     </style>
     <template>
-        <stv-table id="table" hidden$="{{isEmpty}}" on-rowclick="handleRowClick" enable-export enable-paging></stv-table>
+        <stv-table id="table" hidden$="{{isEmpty}}" on-rowclick="handleRowClick" enable-export enable-paging enable-resize></stv-table>
         <div hidden$="{{!isEmpty}}" style="padding:20px 50px;">
             No effect found.
         </div>
@@ -61,13 +61,29 @@
                 title: "Ensembl Gene Id",
                 cellTemplate: "ensemblGeneIdTemplate",
                 width: 150,
-                defaultValue: '.'
+                defaultValue: '.',
+		disableTooltip: true,
+                formula: function(row){
+                    if (row.ensemblGeneId != "." && row.ensemblGeneId != undefined){
+                        return "<a class='link' href='http://grch37.ensembl.org/Homo_sapiens/Gene/Summary?g=" + row.ensemblGeneId  +"' target='_blank' " +
+                            "title=" + row.ensemblGeneId  +">"+row.ensemblGeneId+"</a>";
+                    } else
+                        return ".";
+                }
             }, {
                 name: "ensemblTranscriptId",
                 title: "Ensembl Transcript Id",
                 cellTemplate: 'ensemblTranscriptIdTemplate',
                 width: 150,
-                defaultValue: '.'
+                defaultValue: '.',
+                disableTooltip: true,
+                formula: function(row){
+                    if (row.ensemblTranscriptId != "." && row.ensemblTranscriptId != undefined){
+                        return "<a class='link' href='http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + row.ensemblTranscriptId  +"' target='_blank' " +
+                            "title=" + row.ensemblTranscriptId  +">"+row.ensemblTranscriptId+"</a>";
+                    } else
+                        return ".";
+                }
             }, {
                 name: "so",
                 title: "Conseq. type",
@@ -105,6 +121,24 @@
                 title: "cds Position",
                 width: 80,
                 defaultValue: '.'
+            },{
+                name: "exonOverlap",
+                title: "exon Overlap",
+                formula: function(row) {
+                    try {
+                        var eo = row.exonOverlap;
+                        var res = [];
+                        if (eo != null && eo.length > 0) {
+                            for (var i = 0; i < eo.length; i++) {
+                                  if (!!eo[i].number)
+                                      res.push(eo[i].number) ;
+                            }
+                        }
+                        return res.length > 0 ? res.join() : ".";
+                    } catch (e) {
+                        return ".";
+                    }
+                }
             }, {
                 name: "aaPosition",
                 title: "AA Position",
@@ -131,7 +165,6 @@
                         return ".";
                     }
                 }
-
             }, {
                 name: "sift",
                 title: "Sift",
@@ -171,6 +204,38 @@
                     return ".";
                 },
                 width: 100
+            },{
+                name: "HGVSc",
+                title: "HGVSc",
+                width: 200,
+                defaultValue: ".",
+                visible: false,
+                formula: function(row) {
+                    try {
+                        return !!row.hgvsc && row.hgvsc.length > 0 ? row.hgvsc.join(",") : ".";
+                    } catch (e) {
+                        return ".";
+                    }
+                }
+            }, {
+                name: "HGVSp",
+                title: "HGVSp",
+                width: 200,
+                defaultValue: ".",
+                visible: false,
+                formula: function(row) {
+                    try {
+                        return !!row.hgvsp && row.hgvsp.length > 0 ? row.hgvsp.join(",") : "." ;
+                    } catch (e) {
+                        return ".";
+                    }
+                }
+            }, {
+                name: "transcriptCanonical",
+                title: "Canonical",
+                width: 50,
+                defaultValue: ".",
+                visible:false
             }
         ],
 
@@ -189,7 +254,7 @@
                     async: false,
                     success: function(response) {
                         try {
-                            me.$.table.data = me.parseFunction(response.response[0].result[0].consequenceTypes);
+                            me.$.table.data = me.parseFunction(response.response[0].result[0].consequenceTypes, neo);
                             me.isEmpty = (me.$.table.data.length > 0) ? false : true;
                         } catch (e) {
                             me.$.table.data = [];
@@ -199,7 +264,7 @@
                 });
             }
         },
-        parseFunction: function(data) {
+        parseFunction: function(data, neo) {
             var res = [];
 
             for (var i = 0; i < data.length; i++) {
@@ -210,6 +275,16 @@
                     var aux = stv.utils.clone(elem);
                     aux.soName = soTerm.name;
                     aux.soAccession = soTerm.accession;
+
+                    if (neo && neo.transcripts && neo.transcripts != undefined) {
+                        var trans = neo.transcripts.filter(t => t.transcriptId == aux.ensemblTranscriptId);
+                        if (trans != undefined && trans.length > 0) {
+                            aux.hgvsc = trans[0].hgvsc;
+                            aux.hgvsp = trans[0].hgvsp ;
+                            aux.transcriptCanonical = !!trans[0].transcriptCanonical ? trans[0].transcriptCanonical : ".";
+                        }
+                    }
+
 
                     res.push(aux);
                 }

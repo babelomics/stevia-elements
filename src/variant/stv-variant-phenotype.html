@@ -37,13 +37,13 @@
         </div>
         <br>
         <label class="stv">Cosmic:</label>
-        <stv-table id="cosmicTable" hidden$="{{isCosmicEmpty}}" enable-export></stv-table>
+        <stv-table id="cosmicTable" hidden$="{{isCosmicEmpty}}" enable-export enable-resize></stv-table>
         <div hidden$="{{!isCosmicEmpty}}" style="padding:20px 50px;">
             No results found.
         </div>
         <br>
         <label class="stv">GWAS:</label>
-        <stv-table id="gwasTable" hidden$="{{isGwasEmpty}}" enable-export></stv-table>
+        <stv-table id="gwasTable" hidden$="{{isGwasEmpty}}" enable-export enable-resize></stv-table>
         <div hidden$="{{!isGwasEmpty}}" style="padding:20px 50px;">
             No results found.
         </div>
@@ -82,8 +82,15 @@
             name: "histologySubtype",
             title: "Histology subtype"
         }, {
-            name: "mutationID",
-            title: "Mutation ID"
+            name: "mutationId",
+            title: "Mutation ID",
+            formula: function(row){
+                if (row.mutationId != "." && row.mutationId != undefined){
+                    return "<a class='link' href='https://cancer.sanger.ac.uk/cosmic/search?q=" + row.mutationId  +"' target='_blank' " +
+                        "title=" + row.mutationId  +">"+row.mutationId+"</a>";
+                } else
+                    return ".";
+            }
         }, {
             name: "mutationSomaticStatus",
             title: "Mutation somatic status",
@@ -120,7 +127,15 @@
         }],
         _clinvarColumns: [{
             name: "accession",
-            title: "Accession"
+            title: "Accession",
+            disableTooltip: true,
+            formula: function(row){
+                if (row.accession != "." && row.accession != undefined){
+                    return "<a class='link' href='https://www.ncbi.nlm.nih.gov/clinvar/" + row.accession  +"' target='_blank' " +
+                        "title=" + row.accession  +">"+row.accession+"</a>";
+                } else
+                    return ".";
+            }
         }, {
             name: "clinicalSignificance",
             title: "Clinical significance",
