@@ -1,4 +1,6 @@
 <link rel="import" href="../../../polymer/polymer.html">
+<link rel="import" href="../../../app-localize-behavior/app-localize-behavior.html">
+
 <dom-module id="stv-variant-frequencies">
     <style is="custom-style"
            include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning">
@@ -59,19 +61,43 @@
             isEmpty: {
                 value: false,
                 type: Boolean
+            },
+            // localization
+            language: {
+                value: 'en'
+            },
+            resources: {
+                type: Object,
+                value: function() {
+                    return {
+                        'en': {},
+                    };
+                }
             }
         },
+        // localization
+        behaviors: [
+            Polymer.AppLocalizeBehavior
+        ],
         ready: function () {
             this.$.table.columns = this._columns;
         },
         _columns: [{
             name: "study",
             title: "Study",
-            width: 150
+            width: 150,
+            disableTooltip: true,
+            formula: function(row){
+                return '<span title="'+ (row.descStudy != null ? row.descStudy : row.study) + '">' + row.study +'</span>';
+            }
         }, {
             name: "population",
             title: "Population",
-            width: 150
+            width: 150,
+            disableTooltip: true,
+            formula: function(row){
+                return '<span title="'+ (row.descPopulation != null ? row.descPopulation : row.population )+ '">' + row.population +'</span>';
+            }
         }, {
             name: "refAllele",
             title: "Ref. Allele",
@@ -128,7 +154,19 @@
                     async: false,
                     success: function (response) {
                         try {
-                            me.$.table.data = response.response[0].result[0].populationFrequencies;
+                            var result = response.response[0].result[0].populationFrequencies;
+                            for (var i = 0; i < result.length; i++) {
+                                me.language="en";
+                                if (me.localize(result[i].study) != "" && me.localize(result[i].study) !=undefined) {
+                                    result[i].descStudy = result[i].study + ": " + me.localize(result[i].study);
+                                }
+
+                                me.language=result[i].study;
+                                if (me.localize(result[i].population) != "" && me.localize(result[i].population) != undefined) {
+                                    result[i].descPopulation = result[i].population + ": " + me.localize(result[i].population);
+                                }
+                            }
+                            me.$.table.data=result;
                             me.isEmpty = (me.$.table.data.length <= 0);
                         } catch (e) {
                             me.$.table.data = [];
@@ -144,7 +182,6 @@
                     var maf = parseFloat(Math.min(elem.refAlleleFreq, elem.altAlleleFreq).toFixed(3));
                     data.push(maf);
                     cat.push(elem.study + "/" + elem.population);
-
                 }
 
                 var polarChart = new Highcharts.Chart({
@@ -184,6 +221,10 @@
                 });
                 this.$.mafChart.hidden = false;
             }
-        }
+        },
+        //localization
+        attached: function() {
+           var elto = this.loadResources(this.resolveUrl('../../conf/locales.json'));
+        },
     });
 </script>

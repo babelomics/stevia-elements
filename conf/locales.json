@@ -1,0 +1,80 @@
+{
+  "en":{
+    "1kG_phase3": "Populations from the 1000 Genomes Project",
+    "ESP6500": "Populations from the NHLBI Exome Sequencing Project",
+    "TOPMed": "Population from TOPMed",
+    "GONL": "Genome of the Netherlands",
+    "ExAC": "Exome Aggregation Consortium",
+    "MGP": "MGP: Medical Genome Project healthy controls from Spanish population",
+    "GNOMAD_EXOMES": "Genome aggregation database - Exomes",
+    "GNOMAD_GENOMES": "Genome aggregation database - Genomes"
+  },
+  "1kG_phase3": {
+    "ALL": "All phase 3 individuals",
+    "AFR": "African",
+    "ACB": "African Caribbean in Barbados",
+    "ASW":" African Ancestry in Southwest US",
+    "ESN": "Esan in Nigeria",
+    "GWD": "Gambian in Western Division, The Gambia",
+    "LWK": "Luhya in Webuye, Kenya",
+    "MSL": "Mende in Sierra Leone",
+    "YRI": "Yoruba in Ibadan, Nigeria",
+    "AMR": "American",
+    "CLM": "Colombian in Medellin, Colombia",
+    "MXL": "Mexican Ancestry in Los Angeles, California",
+    "PEL": "Peruvian in Lima, Peru",
+    "PUR": "Puerto Rican in Puerto Rico",
+    "EAS": "East Asian",
+    "CDX": "Chinese Dai in Xishuangbanna, China",
+    "CHB": "Han Chinese in Bejing, China",
+    "CHS": "Southern Han Chinese, China",
+    "JPT": "Japanese in Tokyo, Japan",
+    "KHV": "Kinh in Ho Chi Minh City, Vietnam",
+    "EUR": "European",
+    "CEU": "Utah residents with Northern and Western European ancestry",
+    "FIN": "Finnish in Finland",
+    "GBR": "British in England and Scotland",
+    "IBS": "Iberian populations in Spain",
+    "TSI": "Toscani in Italy",
+    "SAS": "South Asian",
+    "BEB": "Bengali in Bangladesh",
+    "GIH": "Gujarati Indian in Houston, TX",
+    "ITU": "Indian Telugu in the UK",
+    "PJL": "Punjabi in Lahore, Pakistan",
+    "STU": "Sri Lankan Tamil in the UK"
+  },
+  "ESP6500": {
+    "AA": "African American",
+    "EA": "European American"
+  },
+  "TOPMed": {
+    "TOPMed": "Trans-Omics for Precision Medicine (TOPMed) Program"
+  },
+  "UK10K": {
+    "ALSPAC": "ALSPAC cohort",
+    "TWINSUK": "TWINSUK cohort excluding 67 samples where a monozygotic or dyzygotic twin was included in the release"
+  },
+  "GNOMAD_EXOMES":{
+    "ALL":"All gnomAD exomes individuals",
+    "AFR":"African/African American",
+    "AMR":"Latino",
+    "ASJ":"Ashkenazi Jewish",
+    "EAS":"East Asian",
+    "FIN":"Finnish",
+    "NFE":"Non-Finnish European",
+    "OTH":"Other",
+    "SAS":"South Asian"
+  },
+  "GNOMAD_GENOMES":{
+    "ALL":"All gnomAD genomes individuals",
+    "AFR":"African/African American",
+    "AMI":"Amish",
+    "AMR":"Latino/Admixed American",
+    "ASJ":"Ashkenazi Jewish",
+    "EAS":"East Asian",
+    "FIN":"Finnish",
+    "NFE":"Non-Finnish European",
+    "OTH":"Other",
+    "SAS":"South Asian"
+  }
+}
