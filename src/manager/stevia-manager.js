@@ -188,8 +188,8 @@ var SteviaManager = {
             request.onload = function () {
                 var contentType = this.getResponseHeader('Content-Type');
                 if (contentType.indexOf('application/json') != -1) {
-                    var json = JSON.parse(this.response);
-                    if (json.error == null) {
+                    var json = JSON.parse(this.response);		
+                    if (json.error == null || json.error == "") {
                         args.request.success(json, this);
                     } else {
                         if (window.STEVIA_MANAGER_LOG === true) {

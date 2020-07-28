@@ -209,7 +209,6 @@
                 title: "HGVSc",
                 width: 200,
                 defaultValue: ".",
-                visible: false,
                 formula: function(row) {
                     try {
                         return !!row.hgvsc && row.hgvsc.length > 0 ? row.hgvsc.join(",") : ".";
@@ -222,7 +221,6 @@
                 title: "HGVSp",
                 width: 200,
                 defaultValue: ".",
-                visible: false,
                 formula: function(row) {
                     try {
                         return !!row.hgvsp && row.hgvsp.length > 0 ? row.hgvsp.join(",") : "." ;
@@ -234,8 +232,7 @@
                 name: "transcriptCanonical",
                 title: "Canonical",
                 width: 50,
-                defaultValue: ".",
-                visible:false
+                defaultValue: "."
             }
         ],
 
@@ -250,11 +247,14 @@
                     subCategory: 'variant',
                     resource: 'annotation',
                     query: variant,
+                    paramsWS: {
+                            transcripts: true
+                         },
                     //                    query: "19:45411941:T:C",
                     async: false,
                     success: function(response) {
                         try {
-                            me.$.table.data = me.parseFunction(response.response[0].result[0].consequenceTypes, neo);
+                            me.$.table.data = me.parseFunction(response.response[0].result[0], neo);
                             me.isEmpty = (me.$.table.data.length > 0) ? false : true;
                         } catch (e) {
                             me.$.table.data = [];
@@ -266,9 +266,10 @@
         },
         parseFunction: function(data, neo) {
             var res = [];
+            var consequenceTypes = data.consequenceTypes;
 
-            for (var i = 0; i < data.length; i++) {
-                var elem = data[i];
+            for (var i = 0; i < consequenceTypes.length; i++) {
+                var elem = consequenceTypes[i];
 
                 for (var j = 0; j < elem.sequenceOntologyTerms.length; j++) {
                     var soTerm = elem.sequenceOntologyTerms[j];
@@ -276,15 +277,14 @@
                     aux.soName = soTerm.name;
                     aux.soAccession = soTerm.accession;
 
-                    if (neo && neo.transcripts && neo.transcripts != undefined) {
-                        var trans = neo.transcripts.filter(t => t.transcriptId == aux.ensemblTranscriptId);
+                    if (data.transcripts &&  data.transcripts != undefined) {
+                        var trans = data.transcripts.filter(function (t){ return t.transcriptId == aux.ensemblTranscriptId});
                         if (trans != undefined && trans.length > 0) {
                             aux.hgvsc = trans[0].hgvsc;
                             aux.hgvsp = trans[0].hgvsp ;
                             aux.transcriptCanonical = !!trans[0].transcriptCanonical ? trans[0].transcriptCanonical : ".";
                         }
                     }
-
 
                     res.push(aux);
                 }

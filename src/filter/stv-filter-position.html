@@ -110,7 +110,8 @@
                     for (var i = 0; i < aux.length; i++) {
                         regionName = aux[i];
                         if (regionName != '') {
-                            var re = /^(\w+)(:(\d+)-(\d+))?$/;
+                            //var re = /^(\w+)(:(\d+)-(\d+))?$/;
+                            var re = /^([0-9]|1[0-9]+|2[[0-2]|X|Y|MT)(:(\d+)-(\d+))?$/;
                             if (re.test(regionName)) {
                                 var groups = regionName.match(re);
                                 if (groups.length == 5) {

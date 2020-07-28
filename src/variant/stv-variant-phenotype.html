@@ -42,11 +42,13 @@
             No results found.
         </div>
         <br>
+        <template is="dom-if" if="{{isGwasEnable}}">
         <label class="stv">GWAS:</label>
         <stv-table id="gwasTable" hidden$="{{isGwasEmpty}}" enable-export enable-resize></stv-table>
         <div hidden$="{{!isGwasEmpty}}" style="padding:20px 50px;">
             No results found.
         </div>
+    </template>
     </template>
 </dom-module>
 <script>
@@ -68,10 +70,15 @@
             isClinvarEmpty: {
                 value: false,
                 type: Boolean
+            },
+            isGwasEnable: {
+                value: false,
+                type: Boolean
             }
         },
         ready: function () {
             this.$.cosmicTable.columns = this._cosmicColumns;
+            if (this.isGwasEnable)
             this.$.gwasTable.columns = this._gwasColumns;
             this.$.clinvarTable.columns = this._clinvarColumns;
         },
@@ -82,7 +89,7 @@
             name: "histologySubtype",
             title: "Histology subtype"
         }, {
-            name: "mutationId",
+            name: "mutationID",
             title: "Mutation ID",
             formula: function(row){
                 if (row.mutationId != "." && row.mutationId != undefined){
@@ -131,7 +138,7 @@
             disableTooltip: true,
             formula: function(row){
                 if (row.accession != "." && row.accession != undefined){
-                    return "<a class='link' href='https://www.ncbi.nlm.nih.gov/clinvar/?term=" + row.accession  +"' target='_blank' " +
+                    return "<a class='link' href='https://www.ncbi.nlm.nih.gov/clinvar/" + row.accession  +"' target='_blank' " +
                         "title=" + row.accession  +">"+row.accession+"</a>";
                 } else
                     return ".";
@@ -156,7 +163,8 @@
             var me = this;
 
             this.$.cosmicTable.currentPage = 1;
-            this.$.gwasTable.currentPage = 1;
+            if (this.isGwasEnable)
+            	this.$.gwasTable.currentPage = 1;
             this.$.clinvarTable.currentPage = 1;
 
             if (neo) {
@@ -181,11 +189,13 @@
                             if (!clinicalData) {
 
                                 me.$.cosmicTable.data = [];
-                                me.$.gwasTable.data = [];
+                                if (this.isGwasEnable)
+                                	me.$.gwasTable.data = [];
                                 me.$.clinvarTable.data = [];
 
                                 me.isCosmicEmpty = true;
-                                me.isGwasEmpty = true;
+                                if (this.isGwasEnable)
+                                	me.isGwasEmpty = true;
                                 me.isClinvarEmpty = true;
                                 return;
                             }
@@ -196,7 +206,7 @@
                                     dataCosmic.push(cosmic);
                                 }
                             }
-                            if (clinicalData.gwas != null) {
+                            if (this.isGwasEnable && clinicalData.gwas != null) {
                                 for (var i = 0; i < clinicalData.gwas.length; i++) {
                                     var gwas = clinicalData.gwas[i];
                                     dataGwas.push(gwas);
@@ -209,21 +219,25 @@
                                 }
                             }
                             me.$.cosmicTable.data = dataCosmic;
-                            me.$.gwasTable.data = dataGwas;
+                            if (this.isGwasEnable)
+                            	me.$.gwasTable.data = dataGwas;
                             me.$.clinvarTable.data = dataClinvar;
 
                             me.isCosmicEmpty = (me.$.cosmicTable.data.length > 0) ? false : true;
-                            me.isGwasEmpty = (me.$.gwasTable.data.length > 0) ? false : true;
+                            if (this.isGwasEnable)
+                            	me.isGwasEmpty = (me.$.gwasTable.data.length > 0) ? false : true;
                             me.isClinvarEmpty = (me.$.clinvarTable.data.length > 0) ? false : true;
 
                         } catch (e) {
                             console.log(e);
                             me.$.cosmicTable.data = [];
-                            me.$.gwasTable.data = [];
+                            if (this.isGwasEnable)
+                            	me.$.gwasTable.data = [];
                             me.$.clinvarTable.data = [];
 
                             me.isCosmicEmpty = true;
-                            me.isGwasEmpty = true;
+                            if (this.isGwasEnable)
+                            	me.isGwasEmpty = true;
                             me.isClinvarEmpty = true;
                         }
                     }

@@ -27,8 +27,12 @@ var CellBaseManager = {
         var error = args.error;
         var async = (args.async == false) ? false: true;
 
+        var d;
+        if (args.category == 'feature' &&  args.subCategory =='variation' && args.resource =='search')
+            success(CellBaseManager.searchSNPId(args));
+
         // remove XMLHttpRequest keys
-        var ignoreKeys = ['success', 'error', 'async'];
+        var ignoreKeys = ['success', 'error', 'async','paramsWS'];
         var urlConfig = {};
         for (var prop in args) {
             if (hasOwnProperty.call(args, prop) && args[prop] != null && ignoreKeys.indexOf(prop) == -1) {
@@ -45,12 +49,21 @@ var CellBaseManager = {
             console.log(url);
         }
 
-        var d;
         var request = new XMLHttpRequest();
         request.onload = function () {
             var contentType = this.getResponseHeader('Content-Type');
             if (contentType.indexOf('application/json')!= -1) {
                 var parsedResponse = JSON.parse(this.response);
+
+                // Search transcript and get from WS
+                if (!!args.paramsWS && !!args.paramsWS.transcripts && args.paramsWS.transcripts)
+                    CellBaseManager.getTranscripts(args, parsedResponse);
+
+                // Search rs and get from WS
+                // TODO: Remove to search RS
+                if (false)
+                    CellBaseManager.getRS(args, parsedResponse);
+
                 if (typeof success === "function") success(parsedResponse);
                 d = parsedResponse;
             } else {
@@ -132,5 +145,137 @@ var CellBaseManager = {
 
         url = stv.utils.addQueryParamtersToUrl(config.params, url);
         return url;
+    },
+
+    getTranscripts: function(args, parsedResponse){
+        if (args.category == 'genomic' && args.subCategory === 'variant' && args.resource == 'annotation'){
+            var listPositions = !!args && !!args.query ? args.query.split(',') : [];
+            if (parsedResponse.response.length > 0 && listPositions.length > 0){
+                var listTranscripts = [];
+                // Annotate HGVS (Transcript)
+                WSManager.get({
+                    host: WS_HOST,
+                    version: WS_VERSION,
+                    // species: 'hsapiens',
+                    //query: "ids=" + ensemblGeneIds.join("&ids=") ,//+ '&page=0&pageSize=10',
+                    category:  'variants',
+                    subCategory:  'hgvs',
+                    body: JSON.stringify(listPositions),
+                    async: false,
+                    method: "POST",
+                    headers: {
+                        accept: "*/*",
+                        'Content-Type': "application/json"
+                    },
+                    success: function (response) {
+                        if (response != null)
+                            listTranscripts = response;
+                    },
+                    error: function(response){
+                        listTranscripts = [];
+                        console.log(response);
     }
+                });
+
+                for (var i = 0; i < parsedResponse.response.length; i++){
+                    var pIndex = i;
+                    if (pIndex > -1 && listTranscripts.length > pIndex) {
+                        for (var numResult = 0; numResult < parsedResponse.response[i].result.length; numResult++) {
+                            parsedResponse.response[i].result[numResult].transcripts = listTranscripts[pIndex];
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    searchSNPId: function(args){
+        var result;
+         WSManager.get({
+            species: 'hsapiens',
+            category: 'variation',
+            subCategory: 'rs',
+            async: false,
+            method: 'POST',
+            body: JSON.stringify(args.params.id),
+            headers: {
+                accept: "*/*",
+                'Content-Type': "application/json"
+            },
+            success: function (respone) {
+                result ={
+                    response: [
+                        {
+                            "numResults": respone.length(),
+                            "numTotalResults": respone.length(),
+                            "result": respone
+                        }
+                    ]
+                };
+            },
+            error: function (response) {
+                // TODO: GRG Remove test data
+                result = {
+                    response: [
+                        {
+                            "numResults": 1,
+                            "numTotalResults": 1,
+                            "result":        []
+                        }
+                    ]
+                };
+		console.log(response);
+            }
+        });
+         return result;
+    },
+
+    getRS: function(args, parsedResponse){
+        if ((args.subCategory === 'variant' && args.resource == 'annotation' ) ||
+            (args.subCategory === 'variation' && args.resource == 'info' ) ||
+            (args.subCategory === 'region' && args.resource == 'snp' )
+            ){
+            console.log('getRS',args);
+            var listPositions = !!args && !!args.query ? args.query.split(',') : [];
+            if (parsedResponse.response.length > 0 && listPositions.length > 0){
+                var listRS = [];
+                // Annotate RS (RS)
+                WSManager.get({
+                    host: WS_HOST,
+                    version: WS_VERSION,
+                    category:  'variants',
+                    subCategory:  'rs',
+                    body: JSON.stringify(listPositions),
+                    async: false,
+                    method: "POST",
+                    headers: {
+                        accept: "*/*",
+                        'Content-Type': "application/json"
+                    },
+                    success: function (response) {
+                        if (response != null)
+                            listRS = response;
+                    },
+                    error:function (response) {
+                        console.log(response);
+                    }
+                });
+
+                for (var i = 0; i < parsedResponse.response.length; i++){
+                    pIndex = i;
+                    if (pIndex > -1 && listRS.length > pIndex) {
+
+                        for (var numResult = 0; numResult < parsedResponse.response[i].result.length; numResult++) {
+                            parsedResponse.response[i].result[numResult].id = listRS[pIndex].id;
+                            if (parsedResponse.response[i].result[numResult].annotation != undefined) {
+                                parsedResponse.response[i].result[numResult].annotation.id = listRS[pIndex].id;
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
 };

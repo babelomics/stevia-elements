@@ -48,8 +48,11 @@ with a z-index above this value will not be blocked.
         <style>
             #message {
                 /*font-weight: bold;*/
-                text-align: center;
+                /*text-align: center;*/
                 font-size: 1.15em;
+                max-width: 700px;
+                white-space: pre-line;
+                word-break: keep-all;
             }
 
             #title {
@@ -88,7 +91,8 @@ with a z-index above this value will not be blocked.
                 @apply(--modal-window-style);
                 @apply(--layout-vertical);
                 min-height: 200px;
-                width: 350px;
+                max-width: 500px;
+                min-width: 350px;
             }
 
             .buttons {
