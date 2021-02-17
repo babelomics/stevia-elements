@@ -769,11 +769,12 @@
                 this.currentPage = 1;
                 var count = 0;
                 if (this.data) {
-                    this.data.forEach(function(row) {
-                        if (row._filtered || row._filtered == null) {
-                            count++;
-                        }
-                    });
+                    if (this.data.length > 0)
+                        this.data.forEach(function(row) {
+                            if (row._filtered || row._filtered == null) {
+                                count++;
+                            }
+                        });
                 }
                 this.itemCount = count;
                 this.pageCount = Math.ceil(count / this.pageSize);
