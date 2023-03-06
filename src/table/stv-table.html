@@ -902,6 +902,9 @@
                         if (me.enableLoading) {
                             me.setLoading(false);
                         }
+                        if (!!me.request.selectElem){
+                           me.request.selectElem(resp);
+                        }
                     });
                 } else {
                     //                ...
