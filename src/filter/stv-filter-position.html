@@ -25,15 +25,14 @@
     <template>
         <stv-form-box collapsible$="{{collapsible}}" collapsed$="{{collapsed}}">
             <div class="header">
-                Position
+                <span title="Variant filtering by Chromosomal location, Gene or SNPId/GHVSc/HGVSp identifiers">Position <sup><i class="fa fa-info-circle" aria-hidden="true"></i></sup></span>
             </div>
             <div class="container">
                 <label class="stv">Chromosomal location:</label>
-                <textarea class="stv" id="region" name="region" placeholder="1:1-1000000,2:1-1000000" value="{{regionValue::change}}" rows="3">
-                </textarea>
+                <textarea class="stv" id="region" name="region" placeholder="1:1-1000000,2:1-1000000" value="{{regionValue::change}}" rows="3">                </textarea>
 
                 <div class="horizontal layout" hidden$="{{!enableImportbed}}">
-                    <label class="stv" class="flex" style="margin-top: 4px;">Import from BED:</label>
+                    <label class="stv" style="margin-top: 4px;">Import from BED:</label>
                     <div class="stv-btn stv-btn-shdw importBut" on-click="showImportComponent"><i class="fa fa-plus-square-o"></i>&nbsp; Import
                     </div>
                 </div>
@@ -43,7 +42,7 @@
                 </textarea>
 
                 <label class="stv" hidden$="{{!enableSnpid}}">SNPId/HGVSc/HGVSp:</label>
-                <textarea class="stv" id="snpId" name="snpId" placeholder="rs9988179,ENST00000342066.8:c.1027T>C" value="{{snpIdValue::change}}" rows="3" hidden$="{{!enableSnpid}}">
+                <textarea class="stv" id="snpId" name="snpId" placeholder="rs9988179,ENST00000341065.4:c.430-25A>G,p.Gln1004=" value="{{snpIdValue::change}}" rows="3" hidden$="{{!enableSnpid}}">
                 </textarea>
             </div>
         </stv-form-box>
@@ -106,7 +105,7 @@
             checkRegion: function() {
                 var regions = [];
                 if (this.regionValue) {
-                    var aux = this.regionValue.split(/,|\n|\r/);
+                    var aux = this.regionValue.replace(" ","").split(/,|\n|\r/);
                     for (var i = 0; i < aux.length; i++) {
                         regionName = aux[i];
                         if (regionName != '') {
@@ -150,7 +149,7 @@
                 }
             },
             checkGene: function() {
-                var geneQuery = this.geneValue.toUpperCase().replace(/\n/gi, ',');
+                var geneQuery = this.geneValue.replace(/\n/gi, ',');
                 if (geneQuery != '') {
                     return geneQuery;
                 } else {

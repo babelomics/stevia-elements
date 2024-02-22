@@ -895,6 +895,7 @@
                     this.setLoading(true);
                 }
                 if (this.enableRemote) {
+                    this.setLoading(true);
                     this._callRemote(function(resp) {
                         me.itemCount = me.request.parseTotal(resp);
                         me.pageCount = Math.ceil(me.itemCount / me.pageSize);

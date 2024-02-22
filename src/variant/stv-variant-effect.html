@@ -62,7 +62,7 @@
                 cellTemplate: "ensemblGeneIdTemplate",
                 width: 150,
                 defaultValue: '.',
-		disableTooltip: true,
+		        disableTooltip: true,
                 formula: function(row){
                     if (row.ensemblGeneId != "." && row.ensemblGeneId != undefined){
                         return "<a class='link' href='http://grch37.ensembl.org/Homo_sapiens/Gene/Summary?g=" + row.ensemblGeneId  +"' target='_blank' " +
@@ -139,7 +139,7 @@
                         return ".";
                     }
                 }
-            }, {
+            },{
                 name: "aaPosition",
                 title: "AA Position",
                 width: 80,
@@ -187,7 +187,7 @@
             }, {
                 name: "polyphen",
                 title: "Polyphen",
-                formula: function(row) {
+                formula: function (row) {
                     var pva = row.proteinVariantAnnotation;
                     if (pva != null && Object.keys(pva).length > 0) {
                         var pss = pva.substitutionScores;
@@ -229,7 +229,7 @@
                     }
                 }
             }, {
-                name: "transcriptCanonical",
+                name: "canonical",
                 title: "Canonical",
                 width: 50,
                 defaultValue: "."
@@ -267,7 +267,7 @@
         parseFunction: function(data, neo) {
             var res = [];
             var consequenceTypes = data.consequenceTypes;
-
+          
             for (var i = 0; i < consequenceTypes.length; i++) {
                 var elem = consequenceTypes[i];
 
@@ -277,15 +277,25 @@
                     aux.soName = soTerm.name;
                     aux.soAccession = soTerm.accession;
 
-                    if (data.transcripts &&  data.transcripts != undefined) {
-                        var trans = data.transcripts.filter(function (t){ return t.transcriptId == aux.ensemblTranscriptId});
-                        if (trans != undefined && trans.length > 0) {
-                            aux.hgvsc = trans[0].hgvsc;
-                            aux.hgvsp = trans[0].hgvsp ;
-                            aux.transcriptCanonical = !!trans[0].transcriptCanonical ? trans[0].transcriptCanonical : ".";
-                        }
-                    }
 
+                    var geneAnnotationTranscript = neo.annotsSequence != undefined && neo.annotsSequence.genes != undefined ?
+                        neo.annotsSequence.genes.find(g => g.ensembl == elem.ensemblGeneId) :
+                    null;
+                    var transcriptAnnotation = geneAnnotationTranscript != null && geneAnnotationTranscript.transcripts != null ?
+                        geneAnnotationTranscript.transcripts.find(t => t.ensembl == aux.ensemblTranscriptId) :
+                    null;
+
+
+                    if (transcriptAnnotation != null) {
+                        var hgvsp = [];
+                        if (transcriptAnnotation.translations != null ){
+                            transcriptAnnotation.translations.forEach(t=> hgvsp.push(...t.hgvsp));
+                        }
+                        aux.hgvsc = transcriptAnnotation.hgvsc;
+                        aux.hgvsp = hgvsp ;
+                        aux.canonical = !!transcriptAnnotation.canonical ? transcriptAnnotation.canonical : ".";
+
+                    }
                     res.push(aux);
                 }
             }

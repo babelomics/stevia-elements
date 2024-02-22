@@ -188,7 +188,7 @@ var SteviaManager = {
             request.onload = function () {
                 var contentType = this.getResponseHeader('Content-Type');
                 if (contentType.indexOf('application/json') != -1) {
-                    var json = JSON.parse(this.response);		
+                    var json = JSON.parse(this.response);
                     if (json.error == null || json.error == "") {
                         args.request.success(json, this);
                     } else {
@@ -218,20 +218,22 @@ var SteviaManager = {
             }
 
             var stv_app = (window.STV_APP != undefined) ? window.STV_APP : "-";
-            request.setRequestHeader("x-stv-app", stv_app);
+            //request.setRequestHeader("x-stv-app", stv_app);
 
             var stv_user = (Cookies("bioinfo_user") != undefined) ? Cookies("bioinfo_user") : "-";
-            request.setRequestHeader("x-stv-user", stv_user);
+            //request.setRequestHeader("x-stv-user", stv_user);
 
-            request.setRequestHeader("x-stv-api", api);
-            request.setRequestHeader("x-stv-action", action);
+            //request.setRequestHeader("x-stv-api", api);
+            //request.setRequestHeader("x-stv-action", action);
 
             if (args.sid == null) {
                 args.sid = Cookies("bioinfo_sid");
             }
             if (args.sid != null) {
-                request.setRequestHeader("Authorization", "sid " + args.sid);
-                request.withCredentials = true;
+                request.setRequestHeader("Authorization","Bearer " + args.sid);
+                url=this._addQueryParamtersToUrl({sid:args.sid}, url);
+                //request.setRequestHeader("Authorization", "sid " + args.sid);
+               // request.withCredentials = true;
             }
             var body = null;
             if (args.request.body != null) {
