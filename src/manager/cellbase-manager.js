@@ -61,8 +61,9 @@ var CellBaseManager = {
 
                 // Search rs and get from WS
                 // TODO: Remove to search RS
-                if (false)
+                if (WS_HOST != ""){
                     CellBaseManager.getRS(args, parsedResponse);
+                }
 
                 if (typeof success === "function") success(parsedResponse);
                 d = parsedResponse;

@@ -393,6 +393,17 @@
         #list[loading] {
             visibility: hidden;
         }
+        .showCopy:after {
+            padding: 2px;
+            position: absolute;
+            z-index: 1;
+            font-family: FontAwesome;
+            content:"\f0ea";
+            font-size: 15px;
+            top: -1px;
+            background-color: white;
+            border: 1px solid grey;
+        }
     </style>
     <template>
         <div id="loading" hidden$="{{!loading}}">
@@ -895,6 +906,7 @@
                     this.setLoading(true);
                 }
                 if (this.enableRemote) {
+                    this.setLoading(true);
                     this._callRemote(function(resp) {
                         me.itemCount = me.request.parseTotal(resp);
                         me.pageCount = Math.ceil(me.itemCount / me.pageSize);
@@ -1352,6 +1364,14 @@
                     el.setAttribute("draggable", "true");
                     el.addEventListener('dragstart', this.drag);
                 }
+                el.addEventListener('dblclick', function(e) {
+                    if (rowData.copy && navigator!= undefined && navigator.clipboard!=undefined) {
+                        var tmpStyle = e.target.parentElement.getAttribute("class");
+                        e.target.parentElement.setAttribute("class", tmpStyle + " showCopy");
+                        navigator.clipboard.writeText(rowData.copy);
+                        setTimeout(()=> {e.target.parentElement.setAttribute("class", tmpStyle);}, 2000);
+                    }
+                 });
                 el.addEventListener('click', function(e) {
                     me.fire('rowclick', {
                         row: rowData
